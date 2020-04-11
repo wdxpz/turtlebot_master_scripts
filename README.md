@@ -1,4 +1,11 @@
 # Usage
+## implementation
+1. create or copy ros project multirobot_nv under ~/catkin_ws/src/
+```
+$ catkin_create_pkg launch_robot
+$ cd launch_robot
+$ cp all dirs and files in this repo 
+```
 ## configuration
 1. add new node for each robot in startall.launch, by giving the robot namesapce and intial (x,y,a) 
 
