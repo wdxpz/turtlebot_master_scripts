@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find multirobot_nv)/launch/start_namespace.launch">
+  <arg name="robot_namespace" value="tb3_0" />
+  </include>
+</launch>
