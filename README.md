@@ -1,6 +1,6 @@
 # Usage
 ## configuration
-1. add new node for each robot in start_namespace.launch, by giving the robot namesapce and intial (x,y,a) 
+1. add new node for each robot in startall.launch, by giving the robot namesapce and intial (x,y,a) 
 
 ```
   <include file="$(find multirobot_nv)/launch/start_namespace.launch">
