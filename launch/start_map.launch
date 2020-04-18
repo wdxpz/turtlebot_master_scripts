@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Default value for location of map config file -->
+  <arg name="map_file" default="$(env HOME)/map/map.yaml"/>
+
+  <!-- Map Server -->
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+</launch>
