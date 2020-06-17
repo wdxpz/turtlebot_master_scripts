@@ -6,6 +6,7 @@
 
   <include file="$(find multirobot_nv)/launch/start_namespace.launch">
   <arg name="robot_namespace" value="tb3_0" />
+  <arg name="BOT_MODEL" value="waffle_pi" />
   <arg name="tb3_0_init_x" value="0.0" />
   <arg name="tb3_0_init_y" value="0.0" />
   <arg name="tb3_0_init_a" value="0.0" />
