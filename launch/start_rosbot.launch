@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="robot_namespace"/>
+  <!-- Bringup one rosbot2s - laptop/remotepc portion -->
+
+  <arg name="move_forward_only" default="false"/>
+
+  <arg name="rosbot_pro" default="true"/>
+
+  <!-- Command Line Arguments -->
+  <arg name="$(arg robot_namespace)_init_x" default="0.0"/>
+  <arg name="$(arg robot_namespace)_init_y" default="0.0"/>
+  <arg name="$(arg robot_namespace)_init_a" default="0.0"/>
+
+  <arg name="pos_x" default="$(arg robot_namespace)_init_x"/>
+  <arg name="pos_y" default="$(arg robot_namespace)_init_y"/>
+  <arg name="pos_a" default="$(arg robot_namespace)_init_a"/>
+
+  <!-- Robot -->
+  <group ns="$(arg robot_namespace)">
+    <!-- rplidar_ros --?
+    <node unless="$(arg rosbot_pro) pkg="rplidar_ros" type="rplidarNode" name="rplidar">
+        <param name="angle_compensate" type="bool" value="true"/>
+        <param name="serial_baudrate" type="int" value="115200""/><!--model A2 (ROSbot 2.0) -->
+    </node>
+    <node if="$(arg rosbot_pro)" pkg="rplidar_ros" type="rplidarNode" name="rplidar">
+        <param name="angle_compensate" type="bool" value="true"/>
+        <param name="serial_baudrate" type="int" value="256000"/> <!-- model A3 (ROSbot 2.0 PRO) -->
+    </node>
+
+    <!-- rosserial_bridge -->
+    <include unless="$(arg rosbot_pro)" file="$(find rosbot_ekf)/launch/rosserial_bridge.launch"/>
+    <include if="$(arg rosbot_pro)" file="$(find rosbot_ekf)/launch/rosserial_bridge.launch">
+        <arg name="serial_port" value="/dev/ttyS4"/>
+        <arg name="serial_baudrate" value="460800"/>
+    </include>
+
+    <!-- message_conversion -->
+    <include file="$(find rosbot_ekf)/launch/message_conversion.launch"/>
+
+    <!-- rosbot_ekf -->
+    <include file="$(find rosbot_ekf)/launch/rosbot_ekf.launch"/>
+    
+    <node pkg="tf" type="static_transform_publisher" name="imu_publisher" args="0 0 0.02 0 0 0 base_link imu_link 100" />
+    
+    <!-- AMCL -->
+    <node pkg="amcl" type="amcl" name="amcl">
+      <!-- Load default parameters for turtlebot -->
+      <param name="initial_pose_x" value="$(eval arg(pos_x))"/>
+      <param name="initial_pose_y" value="$(eval arg(pos_y))"/>
+      <param name="initial_pose_a" value="$(eval arg(pos_a))"/>
+
+      <remap from="scan" to="scan"/>
+      <param name="odom_frame_id"  value="$(arg robot_namespace)/odom"/>
+      <param name="odom_model_type" value="diff-corrected"/>
+      <param name="base_frame_id" value="$(arg robot_namespace)/base_link"/>
+      <param name="update_min_d" value="0.1"/>
+      <param name="update_min_a" value="0.2"/>
+      <param name="min_particles" value="500"/>
+      <param name="global_frame_id" value="map"/>
+      <param name="tf_broadcast" value="true" />
+
+      <!-- Use the single map server -->
+      <!-- <remap from="static_map" to="/static_map"/> -->
+    </node>
+
+
+    <node if="$(arg use_rosbot)" pkg="tf" type="static_transform_publisher" name="laser_broadcaster" args="0 0 0 3.14 0 0 base_link laser 100" />
+
+    <node pkg="move_base" type="move_base" name="move_base" output="screen">
+        <param name="controller_frequency" value="10.0" />
+        <rosparam file="$(find multirobot_nv)/param/rosbot_param/costmap_common_params.yaml" command="load" ns="global_costmap" />
+        <rosparam file="$(find multirobot_nv)/param/rosbot_param/costmap_common_params.yaml" command="load" ns="local_costmap" />
+        <rosparam file="$(find multirobot_nv)/param/rosbot_param/local_costmap_params.yaml" command="load" />
+        <rosparam file="$(find multirobot_nv)/param/rosbot_param/global_costmap_params.yaml" command="load" />
+        <rosparam file="$(find multirobot_nv)/param/rosbot_param/trajectory_planner.yaml" command="load" />
+        <!-- Centralized map server -->
+        <!--  <remap from="map" to="/map"/> -->
+        <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
+    </node>
+
+  </group>
+
+</launch>

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find multirobot_nv)/launch/start_turtlebot.launch">
+  <arg name="robot_namespace" value="tb3_0" />
+  <arg name="tb3_0_init_x" value="0.0" />
+  <arg name="tb3_0_init_y" value="0.0" />
+  <arg name="tb3_0_init_a" value="0.0" />
+  <arg name="bot_model" value="waffle_pi" />
+  </include>
+</launch>

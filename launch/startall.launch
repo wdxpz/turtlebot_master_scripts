@@ -3,12 +3,10 @@
   <include file="$(find multirobot_nv)/launch/start_map.launch">
   <arg name="map_file" value="$(env HOME)/map/map.yaml" />
   </include>
+  
+  <!-- programm to load turtlebot node from template_start_turtlebot_namespace.launch --> 
 
-  <include file="$(find multirobot_nv)/launch/start_namespace.launch">
-  <arg name="robot_namespace" value="tb3_0" />
-  <arg name="tb3_0_init_x" value="0.0" />
-  <arg name="tb3_0_init_y" value="0.0" />
-  <arg name="tb3_0_init_a" value="0.0" />
-  <arg name="bot_model" value="waffle_pi" />
-  </include>
+  <!-- programm to load rosbot node from temlate_start_rosbot_namespace.launch -->
+
+
 </launch>
