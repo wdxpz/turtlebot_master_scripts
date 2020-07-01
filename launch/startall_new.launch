@@ -9,17 +9,10 @@
 
 
 <include file="$(find multirobot_nv)/launch/start_turtlebot.launch">
-  <arg name="robot_namespace" value="tb3_1" />
-  <arg name="tb3_1_init_x" value="0.0" />
-  <arg name="tb3_1_init_y" value="1.0" />
-  <arg name="tb3_1_init_a" value="0.0" />
+  <arg name="robot_namespace" value="tb3_0" />
+  <arg name="tb3_0_init_x" value="0.0" />
+  <arg name="tb3_0_init_y" value="0.0" />
+  <arg name="tb3_0_init_a" value="0.0" />
   <arg name="bot_model" value="waffle_pi" />
-  </include>
-<include file="$(find multirobot_nv)/launch/start_rosbot.launch">
-  <arg name="robot_namespace" value="rb2_3" />
-  <arg name="rb2_3_init_x" value="0.0" />
-  <arg name="rb2_3_init_y" value="3.0" />
-  <arg name="rb2_3_init_a" value="0.0" />
-  <arg name="rosbot_pro" value="false" />
   </include>
 </launch>

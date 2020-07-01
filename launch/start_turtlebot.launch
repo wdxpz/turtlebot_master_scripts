@@ -16,7 +16,7 @@
   <arg name="pos_y" default="$(arg robot_namespace)_init_y"/>
   <arg name="pos_a" default="$(arg robot_namespace)_init_a"/>
 
-  <arg name="model" default="$(bot_model)" doc="model type [burger, waffle, waffle_pi]"/>
+  <arg name="model" default="$(arg bot_model)" doc="model type [burger, waffle, waffle_pi]"/>
   <arg name="urdf_file" default="$(find xacro)/xacro --inorder '$(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro'" />
 
   <!-- Loads robot_description to parameter server from URDF file-->
