@@ -1,102 +1,121 @@
-<?xml version="1.0"?>
 <launch>
-  <arg name="robot_namespace"/>
-  <!-- Bringup one rosbot2s - laptop/remotepc portion -->
 
-  <arg name="move_forward_only" default="false"/>
+    <arg name="robot_namespace"/>
+    <arg name="$(arg robot_namespace)_init_x" default="0.0"/>
+    <arg name="$(arg robot_namespace)_init_y" default="0.0"/>
+    <arg name="$(arg robot_namespace)_init_a" default="0.0"/>
 
-  <arg name="rosbot_pro" default="true"/>
+    <arg name="pos_x" default="$(arg robot_namespace)_init_x"/>
+    <arg name="pos_y" default="$(arg robot_namespace)_init_y"/>
+    <arg name="pos_a" default="$(arg robot_namespace)_init_a"/>
 
-  <!-- Command Line Arguments -->
-  <arg name="$(arg robot_namespace)_init_x" default="0.0"/>
-  <arg name="$(arg robot_namespace)_init_y" default="0.0"/>
-  <arg name="$(arg robot_namespace)_init_a" default="0.0"/>
+    <node pkg="amcl" type="amcl" name="amcl1" output="screen">
 
-  <arg name="pos_x" default="$(arg robot_namespace)_init_x"/>
-  <arg name="pos_y" default="$(arg robot_namespace)_init_y"/>
-  <arg name="pos_a" default="$(arg robot_namespace)_init_a"/>
+        <remap from="scan" to="$(arg robot_namespace)/scan"/>
+        <param name="odom_frame_id" value="$(arg robot_namespace)/odom"/>
+        <param name="odom_model_type" value="diff-corrected"/>
+        <param name="base_frame_id" value="$(arg robot_namespace)/base_link"/>
+        <param name="update_min_d" value="0.1"/>
+        <param name="update_min_a" value="1.0"/>
+        <param name="global_frame_id" value="map" />
+        <param name="use_map_topic" value="true" />
+        <param name="min_particles" value="1000"/>
+        <param name="max_particles" value="5000"/>
 
-  <!-- Robot -->
-  <group ns="$(arg robot_namespace)">
-    <!-- robot stats, don't know if neccesary!!!!!!! -->
-    <!-- copy form package rosbot_description/launch/rosbot_gazebo.launch -->
-    <!-- <rosparam command="load" file="$(find joint_state_controller)/joint_state_controller.yaml" /> -->
-    <!-- <node name="joint_state_controller_spawner" pkg="controller_manager" type="spawner" args="joint_state_controller" /> -->
-    <!-- <param name="robot_description" command="$(find xacro)/xacro.py '$(find rosbot_description)/urdf/rosbot.xacro'"/> -->
-    <!-- <node name="rosbot_spawn" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model rosbot" /> -->
-    <!-- <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/> -->
+        <param name="initial_pose_x"            value="$(eval arg(pos_x))"/>
+        <param name="initial_pose_y"            value="$(eval arg(pos_y))"/>
+        <param name="initial_pose_z"            value="$(eval arg(pos_a))"/>
+        <remap from="initialpose"               to="$(arg robot_namespace)/initialpose"/>
+        <remap from="amcl_pose"                 to="$(arg robot_namespace)/amcl_pose"/>
+        <remap from="particlecloud"             to="$(arg robot_namespace)/particlecloud"/>
+    </node>   
 
 
-<!-- *************************************************************************** -->
-<!-- this part should be automaticly loaded on rosbot node -->
+  <arg name="odom_frame_id"   default="$(arg robot_namespace)/odom"/>
+  <arg name="base_frame_id"   default="$(arg robot_namespace)/base_link"/>
+  <arg name="global_frame_id" default="/map"/>
+  <arg name="odom_topic" default="$(arg robot_namespace)/odom" />
+  <arg name="laser_topic" default="$(arg robot_namespace)/scan" />
 
-    <!-- rplidar_ros -->
-    <!-- This node communicate with device and publish its scans to /scan topic with message type sensor_msgs/LaserScan -->
-    <node unless="$(arg rosbot_pro) pkg="rplidar_ros" type="rplidarNode" name="rplidar">
-        <param name="angle_compensate" type="bool" value="true"/>
-        <param name="serial_baudrate" type="int" value="115200""/><!--model A2 (ROSbot 2.0) -->
-    </node>
-    <node if="$(arg rosbot_pro)" pkg="rplidar_ros" type="rplidarNode" name="rplidar">
-        <param name="angle_compensate" type="bool" value="true"/>
-        <param name="serial_baudrate" type="int" value="256000"/> <!-- model A3 (ROSbot 2.0 PRO) -->
-    </node>
+  <!--add by ws-->
+  <arg name="sensor_frame_id" default="$(arg robot_namespace)/laser" />
+  <!--add by ws-->
 
-    <!-- ROSbot 2.0 -->
-    <include unless="$(arg rosbot_pro)" file="$(find rosbot_ekf)/launch/all.launch"/>
 
-    <!-- ROSbot 2.0 PRO -->
-    <include if="$(arg rosbot_pro)" file="$(find rosbot_ekf)/launch/all.launch" >
-      <arg name="rosbot_pro" value="true" />
-    </include>
 
-    <node if="$(arg use_rosbot)" pkg="tf" type="static_transform_publisher" name="laser_broadcaster" args="0 0 0 3.14 0 0 base_link laser 100" />
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base_rosbot1" output="screen">
+    <rosparam file="$(find multirobot_nv)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
+        <rosparam file="$(find multirobot_nv)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
+        <rosparam file="$(find multirobot_nv)/config/local_costmap_params.yaml" command="load" />
+        <rosparam file="$(find multirobot_nv)/config/global_costmap_params.yaml" command="load" />
+        <rosparam file="$(find multirobot_nv)/config/trajectory_planner.yaml" command="load" />
+    <!-- external params file that could be loaded into the move_base namespace -->
 
-<!-- this part should be automaticly loaded on rosbot node -->
-<!-- *************************************************************************** -->
-    
-    <!-- AMCL Localization-->
-    <node pkg="amcl" type="amcl" name="amcl">
-      <!-- Load default parameters for turtlebot -->
-      <param name="initial_pose_x" value="$(eval arg(pos_x))"/>
-      <param name="initial_pose_y" value="$(eval arg(pos_y))"/>
-      <param name="initial_pose_a" value="$(eval arg(pos_a))"/>
+    <!-- reset frame_id parameters using user input data -->
+    <param name="global_costmap/global_frame" value="$(arg global_frame_id)"/>
+    <param name="global_costmap/robot_base_frame" value="$(arg base_frame_id)"/>
+    <param name="local_costmap/global_frame" value="$(arg odom_topic)"/>
+    <param name="local_costmap/robot_base_frame" value="$(arg base_frame_id)"/>
+    <param name="DWAPlannerROS/global_frame_id" value="$(arg odom_frame_id)"/>
 
-      <remap from="scan" to="scan"/>
-      <param name="odom_frame_id"  value="$(arg robot_namespace)/odom"/>
-      <param name="odom_model_type" value="diff-corrected"/>
-      <param name="base_frame_id" value="$(arg robot_namespace)/base_link"/>
-      <param name="update_min_d" value="0.1"/>
-      <param name="update_min_a" value="0.2"/>
-      <param name="min_particles" value="500"/>
-      <param name="global_frame_id" value="map"/> <!-- appeared in tutorial, but not appeared in rosbot_description/src/rosbot_navigation/launch/amcl_demo.launch-->
-      <param name="tf_broadcast" value="true" /> <!-- appeared in tutorial, but not$
-     
-      <!-- Use the single map server, kept from turtlebot.launch -->
-      <!-- <remap from="static_map" to="/static_map"/> -->
-    </node>
+    <!-- add by ws-->
+    <param name="global_costmap/laser_scan_sensor/sensor_frame" value="$(arg sensor_frame_id)"/>
+    <param name="global_costmap/laser_scan_sensor/topic" value="$(arg laser_topic)"/>
+    <param name="local_costmap/laser_scan_sensor/sensor_frame" value="$(arg sensor_frame_id)"/>
+    <param name="local_costmap/laser_scan_sensor/topic" value="$(arg laser_topic)"/>
+    <!--add by ws-->
 
-    <node pkg="move_base" type="move_base" name="move_base" output="screen">
-        <rosparam file="$(find multirobot_nv)/param/rosbot_param/costmap_common_params.yaml" command="load" ns="global_costmap" />
-        <rosparam file="$(find multirobot_nv)/param/rosbot_param/costmap_common_params.yaml" command="load" ns="local_costmap" />
-        <rosparam file="$(find multirobot_nv)/param/rosbot_param/local_costmap_params.yaml" command="load" />
-        <rosparam file="$(find multirobot_nv)/param/rosbot_param/global_costmap_params.yaml" command="load" />
-        <rosparam file="$(find multirobot_nv)/param/rosbot_param/trajectory_planner.yaml" command="load" />
 
-        <param name="controller_frequency" value="10.0" />
-        <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
+    <remap from="cmd_vel" to="$(arg robot_namespace)/cmd_vel"/>
+    <remap from="odom" to="$(arg odom_topic)"/>
+    <remap from="scan" to="$(arg laser_topic)"/>
+    <remap from="map" to="/map" />
+    <remap from="/move_base_simple/goal"                                           to="$(arg robot_namespace)/move_base_simple/goal" />
+    <remap from="/move_base/TebLocalPlannerROS/global_plan"                        to="$(arg robot_namespace)/move_base/TebLocalPlannerROS/global_plan" />
+    <remap from="/move_base/TebLocalPlannerROS/local_plan"                         to="$(arg robot_namespace)/move_base/TebLocalPlannerROS/local_plan" />
+    <remap from="/move_base/TebLocalPlannerROS/teb_markers"                        to="$(arg robot_namespace)/move_base/TebLocalPlannerROS/teb_markers" />
+    <remap from="/move_base/TebLocalPlannerROS/teb_markers_array"                  to="$(arg robot_namespace)/move_base/TebLocalPlannerROS/teb_markers_array" />
+    <remap from="/move_base/TebLocalPlannerROS/teb_poses"                          to="$(arg robot_namespace)/move_base/TebLocalPlannerROS/teb_poses" />
+    <remap from="/move_base/global_costmap/costmap"                                to="$(arg robot_namespace)/move_base/global_costmap/costmap" />
+    <remap from="/move_base/global_costmap/costmap_updates"                        to="$(arg robot_namespace)/move_base/global_costmap/costmap_updates" />
+    <remap from="/move_base/local_costmap/costmap"                                 to="$(arg robot_namespace)/move_base/local_costmap/costmap" />
+    <remap from="/move_base/local_costmap/costmap_updates"                         to="$(arg robot_namespace)/move_base/local_costmap/costmap_updates" />
+    <remap from="/move_base/local_costmap/footprint"                               to="$(arg robot_namespace)/move_base/local_costmap/footprint" />
 
-        <!-- copy from pakcage rosbot_description/src/rosbot_navigation/amcl_demo.launch-->
-        <!-- <remap from="cmd_vel" to="cmd_vel"/> -->
-        <!-- <remap from="odom" to="odom"/> -->
-        <!-- <remap from="scan" to="/scan"/> -->
-        <!-- <param name="move_base/DWAPlannerROS/yaw_goal_tolerance" value="1.0"/> -->
-        <!-- <param name="move_base/DWAPlannerROS/xy_goal_tolerance" value="1.0"/> -->
+    <remap from="/move_base/GlobalPlanner/parameter_descriptions"                  to="$(arg robot_namespace)/move_base/GlobalPlanner/parameter_descriptions" />
+    <remap from="/move_base/GlobalPlanner/parameter_updates"                       to="$(arg robot_namespace)/move_base/GlobalPlanner/parameter_updates" />
+    <remap from="/move_base/GlobalPlanner/plan"                                    to="$(arg robot_namespace)/move_base/GlobalPlanner/plan" />
+    <remap from="/move_base/GlobalPlanner/potential"                               to="$(arg robot_namespace)/move_base/GlobalPlanner/potential" />
+    <remap from="/move_base/TebLocalPlannerROS/obstacles"                          to="$(arg robot_namespace)/move_base/TebLocalPlannerROS/obstacles" />
+    <remap from="/move_base/TebLocalPlannerROS/parameter_descriptions"             to="$(arg robot_namespace)/move_base/TebLocalPlannerROS/parameter_descriptions" />
+    <remap from="/move_base/TebLocalPlannerROS/parameter_updates"                  to="$(arg robot_namespace)/move_base/TebLocalPlannerROS/parameter_updates" />
+    <remap from="/move_base/cancel"                                                to="$(arg robot_namespace)/move_base/cancel" />
+    <remap from="/move_base/current_goal"                                          to="$(arg robot_namespace)/move_base/current_goal" />
+    <remap from="/move_base/feedback"                                              to="$(arg robot_namespace)/move_base/feedback" />
+    <remap from="/move_base/global_costmap/footprint"                              to="$(arg robot_namespace)/move_base/global_costmap/footprint" />
+    <remap from="/move_base/global_costmap/inflation_layer/parameter_descriptions" to="$(arg robot_namespace)/move_base/global_costmap/inflation_layer/parameter_descriptions" />
+    <remap from="/move_base/global_costmap/inflation_layer/parameter_updates"      to="$(arg robot_namespace)/move_base/global_costmap/inflation_layer/parameter_updates" />
+    <remap from="/move_base/global_costmap/obstacle_layer/clearing_endpoints"      to="$(arg robot_namespace)/move_base/global_costmap/obstacle_layer/clearing_endpoints" />
+    <remap from="/move_base/global_costmap/obstacle_layer/parameter_descriptions"  to="$(arg robot_namespace)/move_base/global_costmap/obstacle_layer/parameter_descriptions" />
+    <remap from="/move_base/global_costmap/obstacle_layer/parameter_updates"       to="$(arg robot_namespace)/move_base/global_costmap/obstacle_layer/parameter_updates" />
+    <remap from="/move_base/global_costmap/parameter_descriptions"                 to="$(arg robot_namespace)/move_base/global_costmap/parameter_descriptions" />
+    <remap from="/move_base/global_costmap/parameter_updates"                      to="$(arg robot_namespace)/move_base/global_costmap/parameter_updates" />
+    <remap from="/move_base/global_costmap/static_layer/parameter_descriptions"    to="$(arg robot_namespace)/move_base/global_costmap/static_layer/parameter_descriptions" />
+    <remap from="/move_base/global_costmap/static_layer/parameter_updates"         to="$(arg robot_namespace)/move_base/global_costmap/static_layer/parameter_updates" />
+    <remap from="/move_base/goal"                                                  to="$(arg robot_namespace)/move_base/goal" />
+    <remap from="/move_base/local_costmap/obstacle_layer/parameter_descriptions"   to="$(arg robot_namespace)/move_base/local_costmap/obstacle_layer/parameter_descriptions" />
+    <remap from="/move_base/local_costmap/obstacle_layer/parameter_updates"        to="$(arg robot_namespace)/move_base/local_costmap/obstacle_layer/parameter_updates" />
+    <remap from="/move_base/local_costmap/parameter_descriptions"                  to="$(arg robot_namespace)/move_base/local_costmap/parameter_descriptions" />
+    <remap from="/move_base/local_costmap/parameter_updates"                       to="$(arg robot_namespace)/move_base/local_costmap/parameter_updates" />
+    <remap from="/move_base/local_costmap/static_layer/parameter_descriptions"     to="$(arg robot_namespace)/move_base/local_costmap/static_layer/parameter_descriptions" />
+    <remap from="/move_base/local_costmap/static_layer/parameter_updates"          to="$(arg robot_namespace)/move_base/local_costmap/static_layer/parameter_updates" />
+    <remap from="/move_base/parameter_descriptions"                                to="$(arg robot_namespace)/move_base/parameter_descriptions" />
+    <remap from="/move_base/parameter_updates"                                     to="$(arg robot_namespace)/move_base/parameter_updates" />
+    <remap from="/move_base/result"                                                to="$(arg robot_namespace)/move_base/result" />
+    <remap from="/move_base/status"                                                to="$(arg robot_namespace)/move_base/status" />
+    <remap from="/move_base_simple/goal"                                           to="$(arg robot_namespace)/move_base_simple/goal" />
+  </node>
 
-        <!-- Centralized map server, kept from turtlebot.launch-->
-        <!--  <remap from="map" to="/map"/> -->
-
-    </node>
-
-  </group>
 
 </launch>
+
