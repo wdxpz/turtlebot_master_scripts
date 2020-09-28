@@ -79,7 +79,6 @@ roslaunch multirobot_nv startall.launch
      <arg name="rb2_0_init_x" value="0.0" />
      <arg name="rb2_0_init_y" value="0.0" />
      <arg name="rb2_0_init_a" value="0.0" />
-     <arg name="bot_model" value="rosbot2_pro" />
      </include>
    ```
 
