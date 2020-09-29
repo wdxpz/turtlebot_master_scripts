@@ -1,12 +1,13 @@
 <launch>
   <include file="$(find multirobot_nv)/launch/start_map.launch">
-  <arg name="map_file" value="/home/sw/projects/rosbot/map/bj01/map.yaml" />
+    <arg name="map_file" value="/home/sw/projects/rosbot/map/bj01/map.yaml" />
   </include>
   
-<include file="$(find multirobot_nv)/launch/start_rosbot.launch">
-  <arg name="robot_namespace" value="rosbot1" />
-  <arg name="rosbot1_init_x" value="0.0" />
-  <arg name="rosbot1_init_y" value="0.0" />
-  <arg name="rosbot1_init_a" value="0.0" />
+  <include file="$(find multirobot_nv)/launch/start_rosbot.launch">
+    <arg name="robot_namespace" value="rosbot1" />
+    <arg name="rosbot1_init_x" value="0.0" />
+    <arg name="rosbot1_init_y" value="0.0" />
+    <arg name="rosbot1_init_a" value="0.0" />
   </include>
+
 </launch>

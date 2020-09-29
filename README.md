@@ -35,6 +35,18 @@ roslaunch multirobot_nv startall.launch
 
 
 
+## manually launch rosbot
+
+```
+#start rosbot with auto startrobot.service at boot or manually at rosbot node
+sudo systemctl start startrobot.service
+
+#start map server, amcl and movebase of specific rosbot, like 'rosbot1'
+roslaunch multirobot_nv start_rosbot_test.launch
+```
+
+
+
 
 
 # Build startall.launch file to support multiple type of robots
@@ -75,7 +87,7 @@ roslaunch multirobot_nv startall.launch
 
    ```
      <include file="$(find multirobot_nv)/launch/start_turtlebot.launch">
-     <arg name="robot_namespace" value="rb2_0" />
+     <arg name="robot_namespace" value="rosbot1" />
      <arg name="rb2_0_init_x" value="0.0" />
      <arg name="rb2_0_init_y" value="0.0" />
      <arg name="rb2_0_init_a" value="0.0" />
